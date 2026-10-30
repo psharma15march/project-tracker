@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#5b5bd6">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>Project Tracker</title>
+<style>
+:root{--bg:#f6f5f1;--card:#fff;--tx:#1b1b1f;--mu:#6b6b76;--bd:#e6e4dd;--ac:#5b5bd6;--bad:#e5484d;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#121316;--card:#1c1d22;--tx:#f1f1f4;--mu:#9a9aa6;--bd:#2b2c33}}
+:root[data-theme="dark"]{--bg:#121316;--card:#1c1d22;--tx:#f1f1f4;--mu:#9a9aa6;--bd:#2b2c33}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:640px;margin:0 auto;padding:16px 16px 96px}
+h1{font-size:26px;margin:4px 0 2px}h2{font-size:15px;color:var(--mu);margin:22px 0 10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.sub{color:var(--mu);font-size:14px;margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:14px;margin-bottom:10px}
+.row{display:flex;align-items:center;gap:12px}.sp{flex:1;min-width:0}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{text-align:center;padding:12px 6px}.stat b{display:block;font-size:24px}.stat span{font-size:12px;color:var(--mu)}
+.pc{cursor:pointer;margin:0;border-left:5px solid var(--c)}
+.pc .e{font-size:24px}.pc b{font-size:15px;display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar{height:7px;border-radius:99px;background:var(--bd);overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:var(--c);border-radius:99px;transition:width .3s}
+small{color:var(--mu);font-size:12px}
+.t{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--bd)}.t:last-child{border:0}
+.ck{width:26px;height:26px;border-radius:50%;border:2px solid var(--c,var(--ac));background:none;flex:none;color:#fff;font-size:15px;padding:0;cursor:pointer}
+.done .ck{background:var(--c,var(--ac))}.done .tx{text-decoration:line-through;color:var(--mu)}
+.od{color:var(--bad)}
+.x{background:none;border:0;color:var(--mu);font-size:20px;cursor:pointer;padding:4px 8px}
+input,select{font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:12px;padding:11px 12px;min-width:0}
+input[type=text]{flex:1}
+.btn{font:inherit;background:var(--ac);color:#fff;border:0;border-radius:12px;padding:11px 16px;font-weight:600;cursor:pointer}
+.btn.g{background:var(--bg);color:var(--tx);border:1px solid var(--bd)}
+.chips{display:flex;gap:8px;margin-bottom:12px}.chip{font:inherit;font-size:13px;padding:7px 14px;border-radius:99px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}.chip.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--bd);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav button{flex:1;border:0;background:none;color:var(--mu);font:inherit;font-size:12px;padding:10px 0 8px;cursor:pointer}nav button b{display:block;font-size:20px}nav .on{color:var(--ac);font-weight:700}
+.focus{background:linear-gradient(135deg,var(--c),#0003);color:#fff;border:0}.focus small{color:#ffffffcc}
+.sw{display:flex;gap:8px;margin:8px 0}.sw i{width:26px;height:26px;border-radius:50%;cursor:pointer;border:3px solid transparent}.sw .on{border-color:var(--tx)}
+.nb{width:100%;min-height:150px;font:inherit;color:var(--tx);background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:12px;resize:vertical;line-height:1.5}
+</style></head><body>
+<main id="app"></main>
+<nav id="nav"></nav>
+<script>
+const KEY='sam-projects-v1',COL=['#5b5bd6','#e5484d','#30a46c','#f5a524','#0ea5e9','#d946ef','#f97316'];
+let S,view='home',cur=null,flt='open',newC=COL[0],dq=null;
+const seed=()=>({n:100,focus:2,p:[
+{id:1,n:'Melor Athletica',e:'👟',c:COL[0],d:'Activewear brand',t:[]},
+{id:2,n:'Blixi',e:'💘',c:COL[1],d:'Dating app',t:[{id:1,x:'Finish remaining fixes',done:0},{id:2,x:'Launch in India',done:0}]},
+{id:3,n:'Wealthbybasics',e:'📈',c:COL[2],d:'Financial influencer',t:[]},
+{id:4,n:'Itmesam',e:'🎵',c:COL[3],d:'AI song creation',t:[]},
+{id:5,n:'Nautilus',e:'🎧',c:COL[4],d:'Techno / instrumental music',t:[]},
+{id:6,n:'Hex',e:'📖',c:COL[5],d:'Anime book writing',t:[]}]});
+try{S=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!S||!S.p)S=seed();
+let saveWarned=false;
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!saveWarned){saveWarned=true;alert('Could not save — storage is full or blocked. Export a backup now (Projects tab → Backup).')}}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const P=id=>S.p.find(p=>p.id==id);
+const kids=id=>S.p.filter(p=>p.par==id);
+const tree=p=>[p,...kids(p.id).flatMap(tree)];
+const pct=p=>{const a=tree(p).flatMap(q=>q.t);return a.length?Math.round(a.filter(t=>t.done).length/a.length*100):0};
+const openN=p=>tree(p).flatMap(q=>q.t).filter(t=>!t.done).length;
+const nm=p=>p.par&&P(p.par)?nm(P(p.par))+' › '+p.n:p.n;
+const today=()=>new Date().toISOString().slice(0,10);
+const all=()=>S.p.flatMap(p=>p.t.map(t=>({...t,p})));
+const od=t=>!t.done&&t.due&&t.due<today();
+const fd=d=>d?new Date(d+'T00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
+function ring(v,s,c){const r=s/2-7,L=2*Math.PI*r;return `<svg width="${s}" height="${s}" viewBox="0 0 ${s} ${s}"><circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="var(--bd)" stroke-width="8"/><circle cx="${s/2}" cy="${s/2}" r="${r}" fill="none" stroke="${c}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${L*v/100} ${L}" transform="rotate(-90 ${s/2} ${s/2})"/><text x="50%" y="50%" text-anchor="middle" dominant-baseline="central" fill="var(--tx)" font-size="${s/4.2}" font-weight="700">${v}%</text></svg>`}
+function taskRow(t){return `<div class="t ${t.done?'done':''}" style="--c:${t.p.c}"><button class="ck" onclick="tog(${t.p.id},${t.id})">${t.done?'✓':''}</button><div class="sp"><div class="tx" title="Tap to edit" onclick="editT(${t.p.id},${t.id})">${esc(t.x)}</div><small>${view!=='proj'?esc(t.p.e+' '+nm(t.p)):''}${t.due?(view!=='proj'?' · ':'')+`<span class="${od(t)?'od':''}">${fd(t.due)}${od(t)?' overdue':''}</span>`:''}</small></div><button class="x" onclick="del(${t.p.id},${t.id})">×</button></div>`}
+function home(){
+ const a=all(),d=a.filter(t=>t.done).length,o=a.length-d,ov=a.filter(od).length,v=a.length?Math.round(d/a.length*100):0,f=P(S.focus);
+ let h=`<h1>Project Tracker</h1><p class="sub">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</p>`;
+ h+=`<div class="card row"><div>${ring(v,104,'var(--ac)')}</div><div class="sp grid" style="gap:6px"><div class="stat card" style="margin:0"><b>${o}</b><span>open</span></div><div class="stat card" style="margin:0"><b>${d}</b><span>done</span></div><div class="stat card od" style="margin:0;grid-column:span 2"><b>${ov}</b><span>overdue</span></div></div></div>`;
+ if(a.length&&(!S.lastExp||Date.now()-S.lastExp>7*864e5))h+=`<div class="card"><b>Backup reminder</b><br><small>Your data lives only on this phone. Export a backup: Projects tab → Backup → Export.</small></div>`;
+ if(f){const nx=tree(f).flatMap(q=>q.t).find(t=>!t.done);h+=`<div class="card focus" style="--c:${f.c};cursor:pointer" onclick="openP(${f.id})"><small>⭐ SHIPPING FOCUS</small><div style="font-size:20px;font-weight:700;margin:4px 0">${f.e} ${esc(f.n)}</div><small>${nx?'Next: '+esc(nx.x):'No open tasks. Add the next step.'}</small></div>`}
+ h+=`<h2>Projects</h2><div class="grid">`+S.p.filter(p=>!p.par).map(p=>`<div class="card pc" style="--c:${p.c}" onclick="openP(${p.id})"><div class="row"><span class="e">${p.e}</span><div class="sp"><b>${esc(p.n)}</b><small>${openN(p)} open</small></div></div><div class="bar" style="--c:${p.c}"><i style="width:${pct(p)}%"></i></div></div>`).join('')+`</div>`;
+ const soon=a.filter(t=>!t.done&&t.due).sort((x,y)=>x.due<y.due?-1:1).slice(0,5);
+ if(soon.length)h+=`<h2>Due soon</h2><div class="card">${soon.map(taskRow).join('')}</div>`;
+ return h}
+function projects(){
+ let h=`<h1>Projects</h1><p class="sub">Open one to add tasks and sub-projects.</p>`+S.p.filter(p=>!p.par).map(p=>`<div class="card row pc" style="--c:${p.c}" onclick="openP(${p.id})"><span class="e">${p.e}</span><div class="sp"><b>${esc(p.n)}</b><small>${esc(p.d||'')}${kids(p.id).length?' · '+kids(p.id).length+' sub-projects':''}</small></div>${ring(pct(p),52,p.c)}</div>`).join('');
+ h+=`<h2>New project</h2><div class="card"><div class="row"><input id="ne" type="text" value="🚀" style="width:60px;flex:none;text-align:center"><input id="nn" type="text" placeholder="Project name"></div><div class="sw">${COL.map(c=>`<i class="${c===newC?'on':''}" style="background:${c}" onclick="newC='${c}';render()"></i>`).join('')}</div><button class="btn" onclick="addP()">Add project</button></div><h2>Backup</h2><div class="card row"><button class="btn g" onclick="exp()">Export</button><label class="btn g" style="cursor:pointer">Import<input type="file" accept=".json" hidden onchange="imp(this)"></label></div>`;
+ return h}
+function tasks(){
+ let a=all();if(flt==='open')a=a.filter(t=>!t.done);if(flt==='done')a=a.filter(t=>t.done);
+ a.sort((x,y)=>(x.due||'9')<(y.due||'9')?-1:1);
+ return `<h1>Tasks</h1><div class="chips">${['open','done','all'].map(f=>`<button class="chip ${f===flt?'on':''}" onclick="flt='${f}';render()">${f}</button>`).join('')}</div>`+
+ `<div class="card"><div class="row" style="flex-wrap:wrap"><select id="qp">${S.p.map(p=>`<option value="${p.id}">${p.e} ${esc(nm(p))}</option>`).join('')}</select><input id="qt" type="text" placeholder="Quick add a task" style="min-width:140px"><input id="qd" type="date"><button class="btn" onclick="addQ()">+</button></div></div>`+
+ `<div class="card">${a.length?a.map(taskRow).join(''):'<small>Nothing here.</small>'}</div>`}
+function proj(){
+ const p=P(cur);if(!p){view='home';return home()}
+ return `<button class="btn g" onclick="${p.par?`openP(${p.par})`:`go('projects')`}">← ${p.par?esc(P(p.par).n):'Back'}</button><div class="row" style="margin:14px 0"><div class="sp"><h1>${p.e} ${esc(p.n)}</h1><p class="sub" style="margin:0">${esc(p.d||'')}</p></div>${ring(pct(p),84,p.c)}</div>`+
+ `<div class="card"><div class="row" style="flex-wrap:wrap"><input id="pt" type="text" placeholder="Add a task" style="min-width:140px"><input id="pd" type="date"><button class="btn" onclick="addT()">Add</button></div></div>`+
+ `<div class="card">${p.t.length?[...p.t].sort((x,y)=>(x.done-y.done)||((x.due||'9')<(y.due||'9')?-1:1)).map(t=>taskRow({...t,p})).join(''):'<small>No tasks yet. What is the next step to ship?</small>'}</div>`+
+ `<h2>Notes</h2><textarea class="nb" placeholder="Ideas, plot, links, anything…" oninput="P(${p.id}).nt=this.value;save()">${esc(p.nt||'')}</textarea><h2>Sub-projects</h2>${kids(p.id).map(k=>`<div class="card row pc" style="--c:${k.c}" onclick="openP(${k.id})"><span class="e">${k.e}</span><div class="sp"><b>${esc(k.n)}</b><small>${openN(k)} open</small></div>${ring(pct(k),52,k.c)}</div>`).join('')}<div class="card"><div class="row"><input id="se" type="text" value="📁" style="width:60px;flex:none;text-align:center"><input id="sn" type="text" placeholder="Add sub-project (e.g. a novel)"><button class="btn" onclick="addP(${p.id})">+</button></div></div><div class="row"><button class="btn g" onclick="S.focus=${p.id};save();render()">${S.focus==p.id?'⭐ Focus':'☆ Make focus'}</button><button class="btn g od" onclick="delP(${p.id})">${dq==p.id?'Tap again to confirm':'Delete project'}</button></div>`}
+function help(){const c=(t,b)=>`<div class="card"><b>${t}</b><div style="color:var(--mu);font-size:14px;line-height:1.55;margin-top:6px">${b}</div></div>`;
+return `<h1>Help &amp; setup</h1><p class="sub">Everything you need in one place.</p>`+
+c('What this is','A free project and task tracker with notes and sub-projects. No account, no sign-in. All data is stored on your phone only.')+
+c('Install on Android (free, works offline)','1. Make a free GitHub account and a new public repo.<br>2. Upload all five files to the repo root: index.html, sw.js, manifest.webmanifest, icon-192.png, icon-512.png.<br>3. Settings → Pages → deploy from the main branch, root folder.<br>4. Open your Pages link in Chrome on Android.<br>5. Tap ⋮ → Install app (or Add to Home screen).<br>6. Open it once with internet. After that it works offline.')+
+c('Using it','Projects tab: open a project to add tasks, notes and sub-projects (for example, each novel under Hex). Tap a task\'s words to edit it or change its date. Tap ☆ Make focus on the one project you are shipping first; it is pinned on Home.')+
+c('Backup','Projects tab → Export saves a backup file. Import restores it. Clearing Chrome’s site data deletes everything, so export regularly.')+
+c('Limits','No sync between devices. Data lives in one browser. To update the app, replace the files in your repo and reopen it online once.')+
+c('The rule','One focus project, one dated next task. Open the app to do the task, not to plan.')}
+function render(){
+ document.getElementById('app').innerHTML={home,projects,tasks,proj,help}[view]();
+ const n=[['home','🏠','Home'],['projects','📂','Projects'],['tasks','✅','Tasks'],['help','❓','Help']];
+ document.getElementById('nav').innerHTML=n.map(([k,i,l])=>`<button class="${(view===k||(view==='proj'&&k==='projects'))?'on':''}" onclick="go('${k}')"><b>${i}</b>${l}</button>`).join('')}
+function go(v){dq=null;view=v;render();scrollTo(0,0)}
+function openP(id){cur=id;go('proj')}
+function editT(pid,tid){const t=P(pid).t.find(t=>t.id==tid);if(!t)return;const x=prompt('Edit task',t.x);if(x===null)return;if(x.trim())t.x=x.trim();const d=prompt('Due date (YYYY-MM-DD, leave blank for none)',t.due||'');if(d!==null){const v=d.trim();if(v===''||/^\d{4}-\d{2}-\d{2}$/.test(v))t.due=v}save();render()}
+function tog(pid,tid){const t=P(pid).t.find(t=>t.id==tid);t.done=t.done?0:1;save();render()}
+function del(pid,tid){const p=P(pid);p.t=p.t.filter(t=>t.id!=tid);save();render()}
+function addT(){const x=pt.value.trim();if(!x)return;P(cur).t.push({id:S.n++,x,done:0,due:pd.value||''});save();render()}
+function addQ(){const x=qt.value.trim();if(!x)return;P(qp.value).t.push({id:S.n++,x,done:0,due:qd.value||''});save();render()}
+function addP(par){const a=par?sn:nn,b=par?se:ne,n=a.value.trim();if(!n)return;const pp=par&&P(par);S.p.push({id:S.n++,n,e:b.value||'📁',c:pp?pp.c:newC,d:'',t:[],par:par||null});save();render()}
+function delP(id){if(dq!==id){dq=id;render();return}const p=P(id),par=p.par,ids=tree(p).map(q=>q.id);S.p=S.p.filter(q=>!ids.includes(q.id));if(ids.includes(S.focus))S.focus=null;save();par&&P(par)?openP(par):go('projects')}
+function exp(){S.lastExp=Date.now();save();const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S)],{type:'application/json'}));a.download='tracker-backup.json';a.click()}
+function imp(i){const f=i.files[0];if(!f)return;f.text().then(x=>{const d=JSON.parse(x);if(d&&Array.isArray(d.p)&&d.p.every(p=>p&&Array.isArray(p.t))){if(confirm('Import replaces ALL current data with the backup. Continue?')){S=d;save();render()}}else alert('That file is not a valid tracker backup.')}).catch(()=>alert('That file is not a valid tracker backup.'))}
+render();
+if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script></body></html>
